@@ -12,9 +12,24 @@ public class StudentsController : ControllerBase
     };
 
     [HttpGet]
-    public ActionResult<List<Student>> GetAll()
+    public ActionResult<List<Student>> GetAll(
+        [FromQuery] int? minScore,
+        [FromQuery] string? sortBy)
     {
-        return Ok(students);
+        List<Student> filteredStudents = students;
+        if (minScore != null)
+        {
+            filteredStudents = filteredStudents.Where(s => s.Score >= minScore).ToList();
+        }
+        if (sortBy == "name")
+        {
+            filteredStudents = filteredStudents.OrderBy(s => s.Name).ToList();
+        }
+        if (sortBy == "score")
+        {
+            filteredStudents = filteredStudents.OrderBy(s => s.Score).ToList();
+        }
+        return Ok(filteredStudents);
     }
 
     [HttpGet("{id}")]
