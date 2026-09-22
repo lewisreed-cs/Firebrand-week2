@@ -25,7 +25,7 @@ public class StudentsController : ControllerBase
         {
             filteredStudents = filteredStudents.OrderBy(s => s.Name).ToList();
         }
-        if (sortBy == "score")
+        else if (sortBy == "score")
         {
             filteredStudents = filteredStudents.OrderBy(s => s.Score).ToList();
         }
