@@ -1,21 +1,31 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using SQLitePCL;
+using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/[controller]")]
 public class StudentsController : ControllerBase
 {
-    private static List<Student> students = new()
+    private static List<Student> studentsTest = new()
     {
         new Student("Lewis", 85),
         new Student("Bob", 65),
         new Student("Alice", 40)
     };
 
+    private readonly AppDbContext _context;
+    public StudentsController(AppDbContext context)
+    {
+        _context = context;
+    }
+
     [HttpGet]
-    public ActionResult<List<Student>> GetAll(
+    public async Task<ActionResult<List<Student>>> GetAll(
         [FromQuery] int? minScore,
         [FromQuery] string? sortBy)
     {
+        var students = await _context.Students.ToListAsync();
         List<Student> filteredStudents = students;
         if (minScore != null)
         {
@@ -33,9 +43,9 @@ public class StudentsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Student> GetById(int id)
+    public async Task<ActionResult<Student>> GetById(int id)
     {
-        Student? student = students.FirstOrDefault(student => student.Id == id);
+        var student = await _context.Students.FindAsync(id);
         if (student != null)
         {
             return Ok(student);
@@ -53,7 +63,7 @@ public class StudentsController : ControllerBase
 
         Student newStudent = new(name: dto.Name, score: dto.Score);
 
-        students.Add(newStudent);
+        studentsTest.Add(newStudent);
 
         return CreatedAtAction(nameof(GetById), new { id = newStudent.Id }, newStudent);
     }
@@ -63,7 +73,7 @@ public class StudentsController : ControllerBase
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        Student? existingStudent = students.FirstOrDefault(s => s.Id == id);
+        Student? existingStudent = studentsTest.FirstOrDefault(s => s.Id == id);
 
         if (existingStudent == null) return NotFound("Student Not Found.");
 
@@ -76,11 +86,11 @@ public class StudentsController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        Student? student = students.FirstOrDefault(s => s.Id == id);
+        Student? student = studentsTest.FirstOrDefault(s => s.Id == id);
 
         if (student == null) return NotFound("Student Not Found.");
 
-        students.Remove(student);
+        studentsTest.Remove(student);
 
         return NoContent();
     }
